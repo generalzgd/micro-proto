@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+//option java_multiple_files = true;
+//option java_package = "com.gameabc.zqproto";
+//option java_outer_classname = "ZQProto";
+//option objc_class_prefix = "ZQProto";
+option go_package = "github.com/generalzgd/micro-proto/goproto/proxy;proxy";
+
+// protoc -I proto --grpc-httpgw_out=paths=source_relative:./goproto ./proto/proxy/grpcproxy.proto
+package proxy;
+
+//import "google/api/annotations.proto";
+
+// @import github.com/generalzgd/micro-proto/goproto/comm:3 需要额外增加的包
+service GrpcProxy {
+
+}

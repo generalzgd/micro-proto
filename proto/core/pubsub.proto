@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "github.com/generalzgd/micro-proto/goproto/core;core";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/core/pubsub.proto
+package core;
+
+//import "core/teamdef.proto";
+import "user/userdef.proto";
+
+// 该文件下所有消息用户，pubsub通道传递事件
+enum PubSubChannel {
+    Login = 0;
+    Logout = 1;
+    TicketUpdate = 2;
+}
+
+// 用户登录消息
+message LoginInfo {
+    string traceId = 1;
+    uint32 platform = 2;
+    user.UserInfo user = 3; // 用户信息
+}
+
+// 用户登出消息
+message LogoutInfo {
+    string traceId = 1;
+    uint32 platform = 2;
+    uint32 uid = 3; // 用户信息
+    // true:正常退出，false:异常断开退出
+    bool expect = 4;
+}
+

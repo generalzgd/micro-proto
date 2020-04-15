@@ -1,0 +1,338 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "gw/gateway.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/gateway/getuserinfo": {
+      "post": {
+        "summary": "获得用户信息\n@transmit\n@tarpkg auth 所在目录\n@target Authorize\n@upid 6173 对应请求协议的cmdid\n@downid 6174",
+        "operationId": "GetUserInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userGetUserInfoReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userGetUserInfoRequest"
+            }
+          }
+        ],
+        "tags": [
+          "HfGateway"
+        ]
+      }
+    },
+    "/v1/gateway/login": {
+      "post": {
+        "summary": "登录校验用户\n@transmit\n@tarpkg auth 所在目录,对应@import的某行\n@target Authorize 后端目标服务名\n@upid 8193 对应请求协议的cmdid\n@downid 8194 对应响应协议的cmdid",
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userLoginReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "HfGateway"
+        ]
+      }
+    },
+    "/v1/gateway/logout": {
+      "post": {
+        "summary": "登出\n@transmit\n@tarpkg auth 所在目录\n@target Authorize\n@upid 8195 对应请求协议的cmdid\n@downid 8196",
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userLogoutReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userLogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "HfGateway"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "commErrorType": {
+      "type": "string",
+      "enum": [
+        "Norm",
+        "UnknowErr",
+        "NilErr",
+        "PackTooLarge",
+        "PackVerFail",
+        "CmdidFail",
+        "SerializeFail",
+        "UnserializeFail",
+        "EncryptFail",
+        "DecryptFail",
+        "CompressFail",
+        "UncompressFail",
+        "EndpointFail",
+        "ClientInfoFail",
+        "TransmitFail",
+        "MarshalFail",
+        "ParamErr",
+        "NewLogin",
+        "NotLogin",
+        "HasLogin",
+        "TokenFail",
+        "ImLoginFail",
+        "UserNoExist",
+        "UserIllegal",
+        "LinkErr",
+        "FilterErr",
+        "DBErr",
+        "PlatformBlock",
+        "TargetRejection",
+        "RateErr",
+        "SvrErr",
+        "SidErr",
+        "GrpcConnErr",
+        "RdsConnErr",
+        "DbConnErr",
+        "UserGetErr",
+        "DataErr",
+        "RpcOptErr",
+        "RdsOptErr",
+        "JsonDataErr",
+        "ProtoDataErr",
+        "CurrencyLessErr",
+        "ApiOptErr",
+        "CustomErr"
+      ],
+      "default": "Norm",
+      "description": "- NilErr: 空指针\n - PackTooLarge: 协议包过大\n - PackVerFail: 协议版本号错误\n - CmdidFail: Cmdid字段错误\n - SerializeFail: 序列化失败\n - UnserializeFail: 反序列化失败\n - EncryptFail: 加密失败\n - DecryptFail: 解密失败\n - CompressFail: 压缩失败\n - UncompressFail: 解压失败\n - EndpointFail: 终端异常\n - ClientInfoFail: 用户元信息异常\n - TransmitFail: 网关转发传输失败\n - MarshalFail: protobuf/json序列化错误\n - ParamErr: 参数错误\n - NewLogin: 重复登录\n - NotLogin: 未登录\n - HasLogin: 已登录\n - TokenFail: token校验失败\n - ImLoginFail: im登录失败\n - UserNoExist: 用户不存在\n - UserIllegal: 非法用户\n - LinkErr: 连接异常断开\n - FilterErr: 敏感词\n - DBErr: 数据库错误\n - PlatformBlock: 平台禁言\n - TargetRejection: 对方拒收，包括黑名单，聊天设置中的相关规则\n - RateErr: 发送频率太高\n - SvrErr: 服务器错误，比如崩溃等\n - SidErr: sid不存在，校验失败\n - GrpcConnErr: grpc链接错误\n - RdsConnErr: redis链接错误\n - DbConnErr: 数据库链接错误\n - UserGetErr: 用户信息获取错误\n - DataErr: 空数据异常,或数据不对\n - RpcOptErr: rpc操作错误\n - RdsOptErr: redis操作错误\n - JsonDataErr: json格式错误\n - ProtoDataErr: proto格式错误\n - CurrencyLessErr: 货币不足， 要做特定处理\n - ApiOptErr: php api访问错误\n - CustomErr: 各个业务员服务自定义错误基础值，新定义的值+CustomErr",
+      "title": "-----------------------------------------"
+    },
+    "userGetUserInfoReply": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/commErrorType"
+        },
+        "message": {
+          "type": "string"
+        },
+        "user": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userUserInfo"
+          }
+        },
+        "traceid": {
+          "type": "string"
+        },
+        "thirdAccount": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "第三方游戏账号信息，需要接收方转换成对应的结构体"
+        }
+      },
+      "title": "s2c"
+    },
+    "userGetUserInfoRequest": {
+      "type": "object",
+      "properties": {
+        "target_uid": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "thirdGameId": {
+          "type": "integer",
+          "format": "int64",
+          "title": "第三方绑定的游戏ID，0:不查"
+        }
+      },
+      "title": "------------------------------------------\n获得用户信息, 获取的信息（例如用户等级）不会实时更新，时间长了，需要重新获取\nc2s"
+    },
+    "userLoginReply": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/commErrorType"
+        },
+        "message": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/userUserInfo"
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "loginCnt": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "通用登录协议"
+    },
+    "userLoginRequest": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "token": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "traceId": {
+          "type": "string"
+        }
+      },
+      "title": "浩方体系通用登录协议"
+    },
+    "userLogoutReply": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/commErrorType"
+        },
+        "message": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string"
+        }
+      },
+      "title": "通用登出协议"
+    },
+    "userLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "traceId": {
+          "type": "string"
+        },
+        "except": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "true:手动正常退出，false:异常断开退出. 客户端发起该协议，需要指定true"
+        }
+      },
+      "title": "通用登出协议"
+    },
+    "userPLevelInfo": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "exp": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "left": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "用户等级信息"
+    },
+    "userUserIdent": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "official",
+        "system"
+      ],
+      "default": "normal",
+      "title": "用户权限类型定义"
+    },
+    "userUserInfo": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ident": {
+          "$ref": "#/definitions/userUserIdent"
+        },
+        "plevel": {
+          "$ref": "#/definitions/userPLevelInfo"
+        },
+        "anchor": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "mobile": {
+          "type": "string"
+        },
+        "invite_code": {
+          "type": "string"
+        }
+      },
+      "title": "用户信息"
+    }
+  }
+}

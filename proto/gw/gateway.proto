@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+//option java_multiple_files = true;
+//option java_package = "com.proto.gw";
+//option java_outer_classname = "GW";
+//option objc_class_prefix = "GW";
+option go_package = "github.com/generalzgd/micro-proto/goproto/gw;gw";
+
+// protoc -Iproto --grpc-tcpgw_out=logtostderr=true,define_prefix=,paths=source_relative:./goproto ./proto/gw/gateway.proto
+// protoc -Iproto --swagger_out=logtostderr=true:./swagger ./proto/gw/gateway.proto
+// protoc -Iproto --grpc-httpgw_out=logtostderr=true,paths=source_relative:./goproto ./proto/gw/gateway.proto
+
+package gw;
+
+import "google/api/annotations.proto";
+import "user/userdef.proto";
+//import "comm/common.proto";
+// ///////////////////////////////////////////
+
+// 网关包，4字节对齐，包头16字节
+/*type GateClientPack struct {
+Length  uint16 // body的长度，65535/1024 ~ 63k
+Seq     uint16 // 序列号
+Cmdid   uint16 // 协议id，可以映射到对应的service:method（兼容字段，后期考虑，把房间聊天网关迁移过来）
+Ver     uint16 // 协议更新版本号 1.0.1 => 1*100 + 0*10 + 1 => 101
+Codec   uint16 // 0:proto  1:json
+Opt     uint16 // 备用字段
+Body    []byte // protobuf or json
+}*/
+
+// 上行
+// @import github.com/generalzgd/micro-proto/goproto/auth:3 需要额外增加的包,1tcp需要加,2http需要加,3都要加
+// @import github.com/generalzgd/micro-proto/goproto/comm:1 需要额外增加的包
+service HfGateway {
+    // 登录校验用户
+    // @transmit
+    // @tarpkg auth 所在目录,对应@import的某行
+    // @target Authorize 后端目标服务名
+    // @upid 8193 对应请求协议的cmdid
+    // @downid 8194 对应响应协议的cmdid
+    rpc Login (user.LoginRequest) returns (user.LoginReply) {
+        option (google.api.http) = {
+            post: "/v1/gateway/login"
+            body: "*"
+        };
+    }
+
+    // 登出
+    // @transmit
+    // @tarpkg auth 所在目录
+    // @target Authorize
+    // @upid 8195 对应请求协议的cmdid
+    // @downid 8196
+    rpc Logout (user.LogoutRequest) returns (user.LogoutReply) {
+        option (google.api.http) = {
+            post: "/v1/gateway/logout"
+            body: "*"
+        };
+    }
+
+    // 获得用户信息
+    // @transmit
+    // @tarpkg auth 所在目录
+    // @target Authorize
+    // @upid 6173 对应请求协议的cmdid
+    // @downid 6174
+    rpc GetUserInfo (user.GetUserInfoRequest) returns (user.GetUserInfoReply) {
+        option (google.api.http) = {
+            post: "/v1/gateway/getuserinfo"
+            body: "*"
+        };
+    }
+
+
+}
+
+// 下行
+/*
+service HfGateWayDown {
+    // 广播通知
+    rpc Notify (user.MsgNotify) returns (comm.CommReply) {
+    }
+
+    // 用户登录通知给所有网关
+    rpc OnHfLogin (user.HfLoginNotify) returns (comm.CommReply) {
+    }
+
+    // 登录验证，互踢判断需要
+    rpc HfKickOut (user.HfKickOutRequest) returns (comm.HfError) {
+    }
+}*/

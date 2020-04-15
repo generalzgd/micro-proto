@@ -1,0 +1,4 @@
+/.idea
+/protoc-gen-grpc-tcpgw/*.exe
+/protoc_gen_grpc_tcpgw
+phpproto

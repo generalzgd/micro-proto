@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.proto.user";
+option java_outer_classname = "User";
+option objc_class_prefix = "User";
+option go_package = "github.com/generalzgd/micro-proto/goproto/gw;gw";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/user/userdef.proto
+package user;
+
+import "comm/common.proto";
+
+// 用户权限类型定义
+enum UserIdent {
+    normal = 0; // 普通账号
+    official = 1; // 官方账号
+    system = 2; // 系统账号
+}
+
+// ------------------------------------------
+// 获得用户信息, 获取的信息（例如用户等级）不会实时更新，时间长了，需要重新获取
+// c2s
+message GetUserInfoRequest {
+    repeated uint32 target_uid = 1; // 要获取的用户uid
+    string traceId = 2; // 用户的uuid，用来追踪用户消息链路
+    // 第三方绑定的游戏ID，0:不查
+    uint32 thirdGameId = 3;
+}
+
+// s2c
+message GetUserInfoReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    repeated UserInfo user = 3; // 用户信息
+    string traceid = 4; // 用户的uuid，用来追踪用户消息链路
+    // 第三方游戏账号信息，需要接收方转换成对应的结构体
+    map<string, string> thirdAccount = 5;
+}
+
+// 获取用户等级信息
+message GetUserPLevelRequest {
+    uint32 target_uid = 1; // 要获取的用户id, 如果没有则取自己
+    string traceId = 2; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 响应用户等级信息
+message GetUserPLevelReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    PLevelInfo level = 3; // 用户等级信息
+    string traceId = 4; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 用户等级信息
+message PLevelInfo {
+    uint32 level = 1; // 当前的用户等级
+    uint32 exp = 2; // 当前的等级经验
+    uint32 left = 3; // 升级到下一等级需要的经验
+}
+
+// 用户信息
+message UserInfo {
+    uint32 uid = 1;
+    string nickname = 2;
+    string avatar = 3;
+    uint32 gender = 4;
+    UserIdent ident = 5; // 用户权限
+    PLevelInfo plevel = 6; // 用户等级
+    bool anchor = 7; // 是否主播
+    string mobile = 8; // 手机号
+    string invite_code = 9; //
+}
+
+
+// -------------------用户体系协议------------------------
+// 一个用户的信息
+message OneUser {
+    uint32 uid = 1; // 为0表示发给所有人
+    uint32 platform = 2; // 为FFFFFFFF表示发给所有端
+    // 链接ID
+    uint32 socketId = 3;
+    // 网关IP
+    string gateIp = 4;
+}
+
+//
+
+
+// 浩方体系通用登录协议
+message LoginRequest {
+    uint32 uid = 1;
+    string token = 2;
+    uint32 platform = 3;
+    string traceId = 4; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 通用登录协议
+message LoginReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    UserInfo user = 3; // 获取的信息（例如用户等级）不会实时更新，时间长了，需要重新登录获取
+    string traceId = 4; // 用户的uuid，用来追踪用户消息链
+    uint32 loginCnt = 5; // 当前端已登录数量，如果>1，需要踢掉旧链接。redis里值不超过1
+}
+
+// 通用登出协议
+message LogoutRequest {
+    string traceId = 1; // 用户的uuid，用来追踪用户消息链路
+    // true:手动正常退出，false:异常断开退出. 客户端发起该协议，需要指定true
+    bool except = 2;
+}
+// 通用登出协议
+message LogoutReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    string traceId = 3; // 用户的uuid，用来追踪用户消息链路
+}
+
+// -----------------------------------------
+// 服务发起踢人请求
+message KickOutRequest {
+    uint32 uid = 1; // 1重复登录
+    uint32 last_sid = 2; // z最后登录的socket id
+    uint32 last_platform = 3; // 最后登录的终端
+    string message = 4;
+    string traceId = 5; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 踢出，
+// s2c，请使用ImError代替
+message KickOut {
+    // 2：重复登录
+    comm.ErrorType code = 1;
+    string message = 2;
+    string traceId = 3; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 用户登录通知给所有网关
+message LoginNotify {
+    OneUser user = 1;
+    int64 loginTime = 2;
+    uint32 socketId = 3;
+    string currentGateIp = 4; // 当前登录的网关ip
+    string traceId = 5; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 直接发给用户的协议
+message MsgNotify {
+    // 注意，如果列表里有uid为0的，一定要放最前，不然同一个用户可能会收到多次同样的消息，platform也一样，需要发起方控制
+    repeated OneUser user = 1; // 广播给哪些人
+    bytes message = 2;
+    uint32 cmdId = 3; // 对应协议的cmdid值
+    // 网关类型，0Im网关，1通用网关
+    int32 gateType = 4;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+//option java_multiple_files = true;
+//option java_package = "com.proto.gw";
+//option java_outer_classname = "GW";
+//option objc_class_prefix = "GW";
+option go_package = "github.com/generalzgd/micro-proto/goproto/gw;gw";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./protofgw/bro.proto
+package gw;
+
+import "comm/common.proto";
+import "user/userdef.proto";
+
+
+// 浩方通用广播到网关服务
+service HfBro {
+    // 直接发给用户的协议
+    rpc Notify (user.MsgNotify) returns (comm.CommReply) {
+    }
+    // 用户登录通知给所有网关
+    rpc OnLogin (user.LoginNotify) returns (comm.CommReply) {
+    }
+
+    // 用户退出通知给所有网关
+    rpc KickOut (user.KickOutRequest) returns (comm.Error) {
+    }
+}

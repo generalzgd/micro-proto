@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.zqproto.core";
+option java_outer_classname = "Core";
+option objc_class_prefix = "Core";
+option go_package = "github.com/generalzgd/micro-proto/goproto/core;core";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/core/teamdef.proto
+package core;
+
+import "comm/common.proto";
+import "user/userdef.proto";
+
+// 队伍状态
+enum TeamState {
+    // 准备阶段
+    Prepare = 0;
+    // 匹配阶段
+    Matching = 1;
+    // 启动阶段（调用多多游戏接口过程）
+    Starting = 2;
+    // 游戏阶段
+    Gaming = 3;
+    // 游戏结束阶段，需要销毁队伍信息
+    Ending = 4;
+}
+
+// 队员状态
+enum TeamMemberState {
+    // 空闲状态
+    Idle = 0;
+    // 准备状态
+    Ready = 1;
+    // 游戏中
+    InGame = 2;
+}
+
+// 队伍信息，成员列表刷新动作
+enum TeamInfoAction {
+    Nothing = 0;
+    All = 1;
+    Add = 2;
+    Del = 3;
+    Update = 4;
+}
+
+// 多多账号和浩方账号信息
+message Account {
+    // 账号信息
+    user.UserInfo user = 1;
+    // 多多账号昵称
+    string Nickname = 2;
+    // 加入队伍时间戳
+    int64 joinTime = 3;
+    // 队员准备状态
+    TeamMemberState state = 4;
+}
+
+// 匹配状态
+enum MatchState {
+    // 匹配 空闲状态
+    MatchIdle = 0;
+    // 匹配 主队
+    MatchLeader = 1;
+    // 匹配 从对
+    MatchFollower = 2;
+}
+
+// 队伍信息, 需要广播下发的队伍状态和队员列表。（广播）
+message TeamInfo {
+    // 队伍编号
+    string id = 1;
+    // 队长ID
+    uint32 leaderUid = 2;
+    // 队伍状态
+    TeamState state = 4;
+    // 队员列表, 该字段独立写入redis
+    repeated Account members = 5;
+    // 0:Idle, 1：所有队员列表，2：需要新增队员列表，3：需要删除的队员列表, 4: 只更新对应队员信息(状态)
+    TeamInfoAction action = 6;
+    // 创建时间戳
+    int64 createTime = 7;
+    // 匹配状态
+    MatchState matchState = 8;
+    // 匹配后，所有到队伍ID, 用,分割
+    string matchedIds = 9;
+    // 玩一局的消耗值
+    uint32 playCost = 10;
+    // 游戏模式
+    uint32 playMode = 11;
+}
+
+// 创建队伍
+message CreateTeamRequest {
+    // 用户的uuid，用来追踪用户消息链路
+    string traceId = 1;
+}
+message CreateTeamReply {
+    comm.CommReply res = 1;
+    // 多多和浩方用户信息
+    Account account = 2;
+    //
+    TeamInfo teamInfo = 4;
+}
+
+// 加入队伍
+message JoinTeamRequest {
+    // 用户的uuid，用来追踪用户消息链路
+    string traceId = 1;
+    // 要加入的队伍编号
+    string teamId = 2;
+    // 自己的队伍编号
+    string myTeamId = 3;
+}
+message JoinTeamReply {
+    comm.CommReply res = 1;
+    // 返回加入成功后的队伍信息
+    TeamInfo teamInfo = 2;
+}
+
+// 队员主动离开队伍
+message LeaveTeamRequest {
+    // 用户的uuid，用来追踪用户消息链路
+    string traceId = 1;
+    // 队伍编号
+    string teamId = 2;
+    // 自己的uid, 如果是队长离开，需要更换队长。离开后广播队伍信息DuoTeamInfo
+    uint32 uid = 3;
+}
+message LeaveTeamReply {
+    comm.CommReply res = 1;
+}
+
+// 踢人
+message KickMemberRequest {
+    // 用户的uuid，用来追踪用户消息链路
+    string traceId = 1;
+    // 被踢人的用户ID，需要leader权限
+    uint32 targetUid = 2;
+    // 自己的队伍编号
+    string myTeamId = 3;
+}
+message KickMemberReply {
+    comm.CommReply res = 1;
+    // 被踢的用户ID
+    repeated uint32 kickedUid = 2;
+}

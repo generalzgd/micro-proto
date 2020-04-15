@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.proto.comm";
+option java_outer_classname = "Comm";
+option objc_class_prefix = "Comm";
+option go_package = "github.com/generalzgd/micro-proto/goproto/comm;comm";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/comm/common.proto
+package comm;
+
+// -----------------------------------------
+enum ErrorType {
+    Norm = 0;
+    UnknowErr = 1;
+    // 空指针
+    NilErr = 2;
+    // 协议包过大
+    PackTooLarge = 3;
+    // 协议版本号错误
+    PackVerFail = 4;
+    // Cmdid字段错误
+    CmdidFail = 5;
+    // 序列化失败
+    SerializeFail = 6;
+    // 反序列化失败
+    UnserializeFail = 7;
+    // 加密失败
+    EncryptFail = 8;
+    // 解密失败
+    DecryptFail = 9;
+    // 压缩失败
+    CompressFail = 10;
+    // 解压失败
+    UncompressFail = 11;
+    // 终端异常
+    EndpointFail = 12;
+    // 用户元信息异常
+    ClientInfoFail = 13;
+    // 网关转发传输失败
+    TransmitFail = 14;
+    // protobuf/json序列化错误
+    MarshalFail = 15;
+    //参数错误
+    ParamErr = 16;
+    //重复登录
+    NewLogin = 17;
+    //未登录
+    NotLogin = 18;
+    // 已登录
+    HasLogin = 19;
+    //token校验失败
+    TokenFail = 20;
+    // im登录失败
+    ImLoginFail = 21;
+    //用户不存在
+    UserNoExist = 22;
+    //非法用户
+    UserIllegal = 23;
+    //连接异常断开
+    LinkErr = 24;
+    // 敏感词
+    FilterErr = 25;
+    // 数据库错误
+    DBErr = 26;
+    // 平台禁言
+    PlatformBlock = 27;
+    // 对方拒收，包括黑名单，聊天设置中的相关规则
+    TargetRejection = 28;
+    // 发送频率太高
+    RateErr = 29;
+    // 服务器错误，比如崩溃等
+    SvrErr = 30;
+    // sid不存在，校验失败
+    SidErr = 31;
+    // grpc链接错误
+    GrpcConnErr = 32;
+    // redis链接错误
+    RdsConnErr = 33;
+    // 数据库链接错误
+    DbConnErr = 34;
+    // 用户信息获取错误
+    UserGetErr = 35;
+    // 空数据异常,或数据不对
+    DataErr = 36;
+    // rpc操作错误
+    RpcOptErr = 37;
+    // redis操作错误
+    RdsOptErr = 38;
+    // json格式错误
+    JsonDataErr = 39;
+    // proto格式错误
+    ProtoDataErr = 40;
+    // 货币不足， 要做特定处理
+    CurrencyLessErr = 41;
+    // php api访问错误
+    ApiOptErr = 42;
+    // 各个业务员服务自定义错误基础值，新定义的值+CustomErr
+    CustomErr = 1000;
+}
+
+message CommReply {
+    ErrorType code = 1;
+    string traceId = 2; // 用户的uuid，用来追踪用户消息链路
+    string message = 3; // 错误消息描述
+}
+
+// -----------------------------------------
+// 心跳
+message Heartbeat {
+}
+
+// 异常
+message Error {
+    ErrorType code = 1; // 错误码
+    string message = 2;
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+//option java_multiple_files = true;
+//option java_package = "com.zqproto.core";
+//option java_outer_classname = "Core";
+//option objc_class_prefix = "Core";
+option go_package = "github.com/generalzgd/micro-proto/goproto/core;core";
+
+import "core/teamdef.proto";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/core/team.proto
+package core;
+
+
+
+
+service Team {
+    // 创建队伍
+    rpc Create (CreateTeamRequest) returns (CreateTeamReply) {
+    }
+    // 加入队伍
+    rpc Join (JoinTeamRequest) returns (JoinTeamReply) {
+    }
+    // 离开队伍
+    rpc Leave (LeaveTeamRequest) returns (LeaveTeamReply) {
+    }
+    // 踢人
+    rpc Kick (KickMemberRequest) returns (KickMemberReply) {
+    }
+
+}

@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+option go_package = "hutte.zhanqi.tv/go/grpc-proto/goproto/auth;auth";
+
+package auth;
+
+import "comm/common.proto";
+import "user/userdef.proto";
+
+// protoc -I proto --go_out=plugins=grpc,paths=source_relative:./goproto ./proto/auth/authorize.proto
+message GetAdminListRequest {
+}
+
+message GetAdminListReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    repeated uint32 officialUids = 3;
+    repeated uint32 systemUids = 4;
+}
+
+// 批量获取用户基本信息（s2s），不包含查第三方绑定的游戏账号
+message GetMultiUserInfoRequest {
+    repeated uint32 targetUids = 1; // 要获取的用户uid
+    string traceId = 2; // 用户的uuid，用来追踪用户消息链路
+    // 第三方绑定的游戏ID，0:不查
+    uint32 thirdGameId = 3;
+}
+
+// 批量响应用户基本信息（s2s）
+message GetMultiUserInfoReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    string traceId = 3; // 用户的uuid，用来追踪用户消息链路
+    // 用户信息，包含第三方账号
+    repeated CommAccount list = 4;
+}
+
+message CommAccount {
+    // userinfo: 只输出uid, nickname, avatar. 使用的时候需要特别注意
+    user.UserInfo user = 1;
+    // 第三方游戏账号信息，需要接收方转换成对应的结构体
+    map<string, string> third = 2;
+}
+
+// 校验用信息请求，sid为php生成的ID
+message ValidateRequest {
+    string sid = 1; // 需要校验登录用户的sid
+    string traceId = 2; // 用户的uuid，用来追踪用户消息链路
+}
+
+// 校验用户信息响应，如果不存在sid的key, 则返回失败；如果sid存在，则返回对应的value，并转化为userinfo结构体
+message ValidateReply {
+    comm.ErrorType code = 1;
+    string message = 2;
+    user.UserInfo info = 3; // 用户信息
+    string traceId = 4; // 用户的uuid，用来追踪用户消息链路
+}
+
+
+service Authorize {
+    // 校验用户sid, 并返回用户信息
+    rpc ValidateAndGetUserInfo (ValidateRequest) returns (ValidateReply) {
+    }
+
+    // 通用登录
+    rpc Login (user.LoginRequest) returns (user.LoginReply) {
+    }
+    // 通用登录
+    rpc Logout (user.LogoutRequest) returns (user.LogoutReply) {
+    }
+
+    // 获得用户信息（含用户等级信息）
+    rpc GetUserInfo (user.GetUserInfoRequest) returns (user.GetUserInfoReply) {
+    }
+
+    //  批量获取用户信息 s2s
+    rpc GetMultiUserInfo (GetMultiUserInfoRequest) returns (GetMultiUserInfoReply) {
+    }
+
+    //  获取用户等级信息, 供服务间调用
+    rpc GetUserPLevel (user.GetUserPLevelRequest) returns (user.GetUserPLevelReply) {
+    }
+
+    //  获取管理员/官方用户信息列表
+    rpc GetAdminList (GetAdminListRequest) returns (GetAdminListReply) {
+    }
+}
