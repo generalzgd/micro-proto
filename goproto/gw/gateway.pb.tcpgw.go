@@ -104,7 +104,7 @@ func init() {
 	serviceMap["gw.Authorize"] = register_Authorize_Transmitor
 }
 
-func decodeBytes(data []byte, codec uint16, inst proto.Message) error {
+func DecodeBytes(data []byte, codec uint16, inst proto.Message) error {
 	if codec == 0 {
 		return proto.Unmarshal(data, inst)
 	} else if codec == 1 {
@@ -113,7 +113,7 @@ func decodeBytes(data []byte, codec uint16, inst proto.Message) error {
 	return errors.New("codec type error")
 }
 
-func encodeBytes(codec uint16, inst proto.Message) ([]byte, error) {
+func EncodeBytes(codec uint16, inst proto.Message) ([]byte, error) {
 	if codec == 0 {
 		return proto.Marshal(inst)
 	} else if codec == 1 {
@@ -178,7 +178,7 @@ func RegisterTransmitor(args *TransmitArgs) error {
 // registor single service enter point
 
 // *********************************************************************************
-// 注册HfGateway传输转换入口
+// 注册Gateway传输转换入口
 // 上行
 // @import github.com/generalzgd/micro-proto/goproto/auth:3 需要额外增加的包,1tcp需要加,2http需要加,3都要加
 // @import github.com/generalzgd/micro-proto/goproto/comm:1 需要额外增加的包
@@ -215,7 +215,7 @@ func register_Authorize_Transmitor(args *TransmitArgs) (err error) {
 // @tarpkg auth 所在目录,对应@import的某行
 func request_Authorize_Login(args *TransmitArgs, client auth.AuthorizeClient) (proto.Message, error) {
 	protoReq := &user.LoginRequest{}
-	if err := decodeBytes(args.Data, args.Codec, protoReq); err != nil {
+	if err := DecodeBytes(args.Data, args.Codec, protoReq); err != nil {
 		return nil, errors.New("codec err[" + err.Error() + "]")
 	}
 	reply, err := client.Login(args.ctx, protoReq)
@@ -230,7 +230,7 @@ func request_Authorize_Login(args *TransmitArgs, client auth.AuthorizeClient) (p
 // @tarpkg auth 所在目录
 func request_Authorize_Logout(args *TransmitArgs, client auth.AuthorizeClient) (proto.Message, error) {
 	protoReq := &user.LogoutRequest{}
-	if err := decodeBytes(args.Data, args.Codec, protoReq); err != nil {
+	if err := DecodeBytes(args.Data, args.Codec, protoReq); err != nil {
 		return nil, errors.New("codec err[" + err.Error() + "]")
 	}
 	reply, err := client.Logout(args.ctx, protoReq)
@@ -245,7 +245,7 @@ func request_Authorize_Logout(args *TransmitArgs, client auth.AuthorizeClient) (
 // @tarpkg auth 所在目录
 func request_Authorize_GetUserInfo(args *TransmitArgs, client auth.AuthorizeClient) (proto.Message, error) {
 	protoReq := &user.GetUserInfoRequest{}
-	if err := decodeBytes(args.Data, args.Codec, protoReq); err != nil {
+	if err := DecodeBytes(args.Data, args.Codec, protoReq); err != nil {
 		return nil, errors.New("codec err[" + err.Error() + "]")
 	}
 	reply, err := client.GetUserInfo(args.ctx, protoReq)

@@ -38,7 +38,7 @@
           }
         ],
         "tags": [
-          "HfGateway"
+          "Gateway"
         ]
       }
     },
@@ -65,7 +65,7 @@
           }
         ],
         "tags": [
-          "HfGateway"
+          "Gateway"
         ]
       }
     },
@@ -92,7 +92,7 @@
           }
         ],
         "tags": [
-          "HfGateway"
+          "Gateway"
         ]
       }
     }

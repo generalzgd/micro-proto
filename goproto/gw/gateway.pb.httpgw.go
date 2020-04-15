@@ -18,7 +18,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
-	grpcpool "github.com/processout/grpc-go-pool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,7 +31,7 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
-func request_HfGateway_Authorize_Login_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_Gateway_Authorize_Login_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq LoginRequest
 	var metadata runtime.ServerMetadata
 
@@ -49,7 +48,7 @@ func request_HfGateway_Authorize_Login_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_HfGateway_Authorize_Logout_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_Gateway_Authorize_Logout_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq LogoutRequest
 	var metadata runtime.ServerMetadata
 
@@ -66,7 +65,7 @@ func request_HfGateway_Authorize_Logout_0(ctx context.Context, marshaler runtime
 
 }
 
-func request_HfGateway_Authorize_GetUserInfo_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_Gateway_Authorize_GetUserInfo_0(ctx context.Context, marshaler runtime.Marshaler, client auth.AuthorizeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetUserInfoRequest
 	var metadata runtime.ServerMetadata
 
@@ -87,41 +86,37 @@ func request_HfGateway_Authorize_GetUserInfo_0(ctx context.Context, marshaler ru
 // type HttpDoneHandler func(string, proto.Message, http.ResponseWriter, *http.Request)
 // type QpsHandler func(time.Duration)
 
-// RegisterHfGatewayHandlerClient registers the http handlers for service HfGateway
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "HfGatewayClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "HfGatewayClient"
+// RegisterGatewayHandlerClient registers the http handlers for service Gateway
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "GatewayClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "GatewayClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "{@target}Client" to call the correct interceptors.
 // @param getEndpoint: a callback func( 'package.Service/Method' ) 'endpoint address'
 // @param endCallback: a callback when grpc end, then callback('package.Service/Method' string, reply proto.Message) bool[false:quit]
 // @param getClientConn: a callback func( 'package.Service/Method' )(conn, error) to get long connection by method
-func RegisterHfGatewayHandlerClient(
+func RegisterGatewayHandlerClient(
 	ctx context.Context,
 	mux *runtime.ServeMux,
 	opts []grpc.DialOption,
 	getEndpoint func(string) string,
-	getClientConn func(string) (*grpcpool.ClientConn, error),
+	getClientConn func(string) (*grpc.ClientConn, func(), error),
 	beginHandler func(string, *http.Request) (int, bool),
 	doneHandler func(string, proto.Message, http.ResponseWriter, *http.Request),
 	qpsHandler func(time.Duration)) error {
 
 	makeConn := func(meth string) (*grpc.ClientConn, error, func()) {
 		if getClientConn != nil {
-			conn, err := getClientConn(meth)
-			if err != nil {
-				return nil, err, func() {}
-			}
-			return conn.ClientConn, nil, func() { conn.Close() }
+			return getClientConn(meth)
 		}
 		addr := getEndpoint(meth)
 		conn, err := grpc.Dial(addr, opts...)
-		return conn, err, func() { conn.Close() }
+		return conn, func() { conn.Close() }, err
 	}
 
 	// 注册Authorize/Login传输方法入口
 	// 登录校验用户
 	// @tarpkg auth 所在目录,对应@import的某行
-	mux.Handle("POST", pattern_HfGateway_Authorize_Login_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Gateway_Authorize_Login_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		begin := time.Now()
 		defer qpsHandler(time.Since(begin))
 		ctx, cancel := context.WithCancel(req.Context())
@@ -145,7 +140,7 @@ func RegisterHfGatewayHandlerClient(
 			return
 		}
 
-		conn, err, closeFunc := makeConn(meth)
+		conn, closeFunc, err := makeConn(meth)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -154,7 +149,7 @@ func RegisterHfGatewayHandlerClient(
 
 		client := auth.NewAuthorizeClient(conn)
 
-		resp, md, err := request_HfGateway_Authorize_Login_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Gateway_Authorize_Login_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -162,14 +157,14 @@ func RegisterHfGatewayHandlerClient(
 		}
 		doneHandler(meth, resp, w, req)
 
-		forward_HfGateway_Authorize_Login_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Gateway_Authorize_Login_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	// 注册Authorize/Logout传输方法入口
 	// 登出
 	// @tarpkg auth 所在目录
-	mux.Handle("POST", pattern_HfGateway_Authorize_Logout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Gateway_Authorize_Logout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		begin := time.Now()
 		defer qpsHandler(time.Since(begin))
 		ctx, cancel := context.WithCancel(req.Context())
@@ -193,7 +188,7 @@ func RegisterHfGatewayHandlerClient(
 			return
 		}
 
-		conn, err, closeFunc := makeConn(meth)
+		conn, closeFunc, err := makeConn(meth)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -202,7 +197,7 @@ func RegisterHfGatewayHandlerClient(
 
 		client := auth.NewAuthorizeClient(conn)
 
-		resp, md, err := request_HfGateway_Authorize_Logout_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Gateway_Authorize_Logout_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -210,14 +205,14 @@ func RegisterHfGatewayHandlerClient(
 		}
 		doneHandler(meth, resp, w, req)
 
-		forward_HfGateway_Authorize_Logout_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Gateway_Authorize_Logout_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	// 注册Authorize/GetUserInfo传输方法入口
 	// 获得用户信息
 	// @tarpkg auth 所在目录
-	mux.Handle("POST", pattern_HfGateway_Authorize_GetUserInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Gateway_Authorize_GetUserInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		begin := time.Now()
 		defer qpsHandler(time.Since(begin))
 		ctx, cancel := context.WithCancel(req.Context())
@@ -241,7 +236,7 @@ func RegisterHfGatewayHandlerClient(
 			return
 		}
 
-		conn, err, closeFunc := makeConn(meth)
+		conn, closeFunc, err := makeConn(meth)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -250,7 +245,7 @@ func RegisterHfGatewayHandlerClient(
 
 		client := auth.NewAuthorizeClient(conn)
 
-		resp, md, err := request_HfGateway_Authorize_GetUserInfo_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Gateway_Authorize_GetUserInfo_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -258,7 +253,7 @@ func RegisterHfGatewayHandlerClient(
 		}
 		doneHandler(meth, resp, w, req)
 
-		forward_HfGateway_Authorize_GetUserInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Gateway_Authorize_GetUserInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -266,17 +261,17 @@ func RegisterHfGatewayHandlerClient(
 }
 
 var (
-	pattern_HfGateway_Authorize_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "login"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Gateway_Authorize_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "login"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_HfGateway_Authorize_Logout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "logout"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Gateway_Authorize_Logout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "logout"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_HfGateway_Authorize_GetUserInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "getuserinfo"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Gateway_Authorize_GetUserInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gateway", "getuserinfo"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
-	forward_HfGateway_Authorize_Login_0 = runtime.ForwardResponseMessage
+	forward_Gateway_Authorize_Login_0 = runtime.ForwardResponseMessage
 
-	forward_HfGateway_Authorize_Logout_0 = runtime.ForwardResponseMessage
+	forward_Gateway_Authorize_Logout_0 = runtime.ForwardResponseMessage
 
-	forward_HfGateway_Authorize_GetUserInfo_0 = runtime.ForwardResponseMessage
+	forward_Gateway_Authorize_GetUserInfo_0 = runtime.ForwardResponseMessage
 )

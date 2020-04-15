@@ -70,7 +70,7 @@ func init() {
 
 }
 
-func decodeBytes(data []byte, codec uint16, inst proto.Message) error {
+func DecodeBytes(data []byte, codec uint16, inst proto.Message) error {
 	if codec == 0 {
 		return proto.Unmarshal(data, inst)
 	} else if codec == 1 {
@@ -79,7 +79,7 @@ func decodeBytes(data []byte, codec uint16, inst proto.Message) error {
 	return errors.New("codec type error")
 }
 
-func encodeBytes(codec uint16, inst proto.Message) ([]byte, error) {
+func EncodeBytes(codec uint16, inst proto.Message) ([]byte, error) {
 	if codec == 0 {
 		return proto.Marshal(inst)
 	} else if codec == 1 {

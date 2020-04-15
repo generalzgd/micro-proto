@@ -31,7 +31,7 @@ Body    []byte // protobuf or json
 // 上行
 // @import github.com/generalzgd/micro-proto/goproto/auth:3 需要额外增加的包,1tcp需要加,2http需要加,3都要加
 // @import github.com/generalzgd/micro-proto/goproto/comm:1 需要额外增加的包
-service HfGateway {
+service Gateway {
     // 登录校验用户
     // @transmit
     // @tarpkg auth 所在目录,对应@import的某行

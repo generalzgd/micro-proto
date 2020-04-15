@@ -14,7 +14,7 @@ import "comm/common.proto";
 
 
 // 下行
-service HfGateWayDown {
+service GateWayDown {
     // 广播通知
     rpc Notify (user.MsgNotify) returns (comm.CommReply) {
     }

@@ -14,7 +14,7 @@ import "user/userdef.proto";
 
 
 // 浩方通用广播到网关服务
-service HfBro {
+service Bro {
     // 直接发给用户的协议
     rpc Notify (user.MsgNotify) returns (comm.CommReply) {
     }
